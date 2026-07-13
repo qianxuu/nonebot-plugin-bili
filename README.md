@@ -5,9 +5,7 @@
 [![OneBot](https://img.shields.io/badge/OneBot-V11-black.svg)](https://onebot.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![CI](https://github.com/qianxuu/nonebot-plugin-bili/actions/workflows/ci.yml/badge.svg)](https://github.com/qianxuu/nonebot-plugin-bili/actions/workflows/ci.yml)
-<!-- 发布到 PyPI 后可取消下一行注释
 [![PyPI](https://img.shields.io/pypi/v/nonebot-plugin-bili.svg)](https://pypi.org/project/nonebot-plugin-bili/)
--->
 
 NoneBot2 插件：自动识别 B 站视频链接并尝试下载发送，支持直播开播 / 下播 / 标题变更提醒。
 
