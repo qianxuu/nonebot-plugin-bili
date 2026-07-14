@@ -10,7 +10,13 @@ from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent, MessageSegme
 from .api import VideoInfo, get_video_info
 from .utils import KeyedLock, is_bvid_in_cd, bytes_to_mibps
 from .client import parse_short
-from .config import BILI_GROUP_BLACKLIST, BILI_GROUP_CD_SECONDS, get_napcat_cache_file_path
+from .config import (
+    BILI_SEND_COVER,
+    BILI_SEND_VIDEO,
+    BILI_GROUP_BLACKLIST,
+    BILI_GROUP_CD_SECONDS,
+    get_napcat_cache_file_path,
+)
 from .upload import UploadOptions, upload_file_stream
 from .download import download, get_cache_file_path
 
@@ -77,22 +83,31 @@ async def _process_bvid(bot: Bot, ev: MessageEvent, bvid: str):
 
 
 async def send_video_info(bot: Bot, ev: MessageEvent, data: VideoInfo):
-    """发送视频信息"""
+    """发送视频信息。cover 含标题、封面图、链接；未启用 cover 时直接发视频。"""
 
     try:
         stream = data.stream
-        msg = Message(
-            [
-                MessageSegment.text(data.title),
-                MessageSegment.image(data.pic),
-                MessageSegment.text(f'https://www.bilibili.com/video/{data.bvid}/'),
-            ]
-        )
-        if stream.skip_download and stream.skip_download_msg is not None:
-            msg.append(MessageSegment.text(f'\r{stream.skip_download_msg}'))
 
-        logger.debug(f'开始发送消息: {data.bvid} - {msg}')
-        await bot.send(ev, msg)
+        if BILI_SEND_COVER:
+            msg = Message(
+                [
+                    MessageSegment.text(data.title),
+                    MessageSegment.image(data.pic),
+                    MessageSegment.text(f'https://www.bilibili.com/video/{data.bvid}/'),
+                ]
+            )
+            if BILI_SEND_VIDEO and stream.skip_download and stream.skip_download_msg is not None:
+                msg.append(MessageSegment.text(f'\r{stream.skip_download_msg}'))
+
+            logger.debug(f'开始发送封面消息: {data.bvid} - {msg}')
+            await bot.send(ev, msg)
+        elif not BILI_SEND_VIDEO:
+            logger.debug(f'{TAG} cover/video 均未启用，跳过: {data.bvid}')
+            return
+
+        if not BILI_SEND_VIDEO:
+            logger.debug(f'{TAG} 未启用 video，跳过下载发送: {data.bvid}')
+            return
 
         file_path = None
         cache_file_path = get_cache_file_path(data.bvid)

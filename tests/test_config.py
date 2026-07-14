@@ -13,10 +13,25 @@ def test_empty_path_and_defaults():
     )
     assert cfg.bili_napcat_cache_dir is None
     assert cfg.bili_group_blacklist == {1, 2}
+    assert cfg.bili_send == {'cover', 'video'}
     assert cfg.bili_max_video_size_mib == 50
     assert cfg.bili_group_cd_seconds == 60
     assert cfg.bili_cache_retention_hours == 24
     assert cfg.bili_live_poll_interval == 15
+
+
+def test_bili_send_json_array_and_aliases():
+    cfg = Config.model_validate({'bili_send': '["cover"]'})
+    assert cfg.bili_send == {'cover'}
+
+    cfg = Config.model_validate({'bili_send': ['VIDEO', ' Cover ']})
+    assert cfg.bili_send == {'video', 'cover'}
+
+    cfg = Config.model_validate({'bili_send': 'video,cover'})
+    assert cfg.bili_send == {'video', 'cover'}
+
+    cfg = Config.model_validate({'bili_send': []})
+    assert cfg.bili_send == set()
 
 
 def test_validators_reject_invalid_values():
@@ -25,6 +40,8 @@ def test_validators_reject_invalid_values():
         ('bili_group_cd_seconds', -1),
         ('bili_cache_retention_hours', 0),
         ('bili_live_poll_interval', 0),
+        ('bili_send', ['audio']),
+        ('bili_send', 'not-json'),
     ]:
         try:
             Config.model_validate({field: value})

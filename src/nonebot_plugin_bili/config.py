@@ -1,7 +1,11 @@
+import json
 from pathlib import Path
 
 from nonebot import get_plugin_config
 from pydantic import Field, BaseModel, field_validator
+
+_ALLOWED_SEND = frozenset({'cover', 'video'})
+_DEFAULT_SEND = frozenset({'cover', 'video'})
 
 
 class Config(BaseModel):
@@ -9,6 +13,8 @@ class Config(BaseModel):
 
     bili_napcat_cache_dir: Path | None = None
     bili_group_blacklist: set[int] = Field(default_factory=set)
+    # 可选发送内容：cover（标题+封面图+链接）、video（视频），JSON 数组
+    bili_send: set[str] = Field(default_factory=lambda: set(_DEFAULT_SEND))
     # 超过该大小的视频跳过下载（MiB）
     bili_max_video_size_mib: float = 50
     # 同一 bvid 在同一群的冷却秒数
@@ -25,6 +31,32 @@ class Config(BaseModel):
             return None
         text = str(value).strip()
         return text if text else None
+
+    @field_validator('bili_send', mode='before')
+    @classmethod
+    def _parse_send(cls, value: object) -> object:
+        if value is None:
+            return set(_DEFAULT_SEND)
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                return set()
+            if text.startswith('['):
+                value = json.loads(text)
+            else:
+                value = [part.strip() for part in text.split(',') if part.strip()]
+        if isinstance(value, (list, tuple, set, frozenset)):
+            return {str(item).strip().lower() for item in value if str(item).strip()}
+        raise ValueError('bili_send 须为 JSON 数组，如 ["cover", "video"]')
+
+    @field_validator('bili_send')
+    @classmethod
+    def _validate_send(cls, value: set[str]) -> set[str]:
+        unknown = value - _ALLOWED_SEND
+        if unknown:
+            allowed = ', '.join(sorted(_ALLOWED_SEND))
+            raise ValueError(f'bili_send 仅支持 {allowed}，未知项: {", ".join(sorted(unknown))}')
+        return value
 
     @field_validator('bili_max_video_size_mib')
     @classmethod
@@ -58,6 +90,9 @@ class Config(BaseModel):
 _SETTINGS = get_plugin_config(Config)
 BILI_NAPCAT_CACHE_DIR = _SETTINGS.bili_napcat_cache_dir
 BILI_GROUP_BLACKLIST = _SETTINGS.bili_group_blacklist
+BILI_SEND = _SETTINGS.bili_send
+BILI_SEND_COVER = 'cover' in BILI_SEND
+BILI_SEND_VIDEO = 'video' in BILI_SEND
 BILI_MAX_VIDEO_SIZE = int(_SETTINGS.bili_max_video_size_mib * 1024 * 1024)
 BILI_GROUP_CD_SECONDS = _SETTINGS.bili_group_cd_seconds
 BILI_CACHE_RETENTION_SECONDS = int(_SETTINGS.bili_cache_retention_hours * 3600)

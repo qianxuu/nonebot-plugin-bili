@@ -116,12 +116,79 @@ class SendVideoInfoTests(IsolatedAsyncioTestCase):
         )
         cache = mock.Mock()
         cache.exists.return_value = False
-        with mock.patch.object(video_mod, 'get_cache_file_path', return_value=cache):
+        with (
+            mock.patch.object(video_mod, 'BILI_SEND_COVER', True),
+            mock.patch.object(video_mod, 'BILI_SEND_VIDEO', True),
+            mock.patch.object(video_mod, 'get_cache_file_path', return_value=cache),
+        ):
             await send_video_info(cast(Bot, bot), cast(MessageEvent, ev), data)
         self.assertEqual(len(bot.sent), 1)
         _event, msg = bot.sent[0]
         self.assertIsInstance(msg, Message)
         self.assertIn('视频较大', str(msg))
+
+    async def test_send_cover_only_skips_video(self):
+        bot = FakeBot()
+        ev = SimpleNamespace()
+        data = VideoInfo(
+            bvid='BV1aa411c7mA',
+            pic='https://i0/pic.jpg',
+            title='cover-only',
+            owner_name='u',
+            pubdate=1,
+            duration=2,
+            view=3,
+            like=4,
+            coin=5,
+            favorite=6,
+            share=7,
+            stream=VideoStreamInfo(skip_download=False, url='https://example.com/v.mp4'),
+        )
+        with (
+            mock.patch.object(video_mod, 'BILI_SEND_COVER', True),
+            mock.patch.object(video_mod, 'BILI_SEND_VIDEO', False),
+            mock.patch.object(video_mod, 'download', side_effect=AssertionError('should not download')),
+        ):
+            await send_video_info(cast(Bot, bot), cast(MessageEvent, ev), data)
+        self.assertEqual(len(bot.sent), 1)
+        _event, msg = bot.sent[0]
+        self.assertIn('cover-only', str(msg))
+        self.assertTrue(any(seg.type == 'image' for seg in msg))
+
+    async def test_send_video_without_cover(self):
+        bot = FakeBot()
+        ev = SimpleNamespace()
+        path = Path('cache/bili-send-no-cover.mp4')
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b'1234')
+        data = VideoInfo(
+            bvid='BV1bb411c7mB',
+            pic='https://i0/pic.jpg',
+            title='no-cover',
+            owner_name='u',
+            pubdate=1,
+            duration=2,
+            view=3,
+            like=4,
+            coin=5,
+            favorite=6,
+            share=7,
+            stream=VideoStreamInfo(skip_download=False, url='https://example.com/v.mp4'),
+        )
+        try:
+            with (
+                mock.patch.object(video_mod, 'BILI_SEND_COVER', False),
+                mock.patch.object(video_mod, 'BILI_SEND_VIDEO', True),
+                mock.patch.object(video_mod, 'get_cache_file_path', return_value=path),
+                mock.patch.object(video_mod, 'get_napcat_cache_file_path', return_value=Path('/app/temp/x.mp4')),
+            ):
+                await send_video_info(cast(Bot, bot), cast(MessageEvent, ev), data)
+            # 未启用 cover：不发标题/封面/链接，只发视频
+            self.assertEqual(len(bot.sent), 1)
+            _event, video_msg = bot.sent[0]
+            self.assertEqual(getattr(video_msg, 'type', None), 'video')
+        finally:
+            path.unlink(missing_ok=True)
 
     async def test_send_with_napcat_mapping(self, tmp_path: Path | None = None):
         bot = FakeBot()
@@ -145,6 +212,8 @@ class SendVideoInfoTests(IsolatedAsyncioTestCase):
         )
         try:
             with (
+                mock.patch.object(video_mod, 'BILI_SEND_COVER', True),
+                mock.patch.object(video_mod, 'BILI_SEND_VIDEO', True),
                 mock.patch.object(video_mod, 'get_cache_file_path', return_value=path),
                 mock.patch.object(video_mod, 'get_napcat_cache_file_path', return_value=Path('/app/temp/x.mp4')),
             ):

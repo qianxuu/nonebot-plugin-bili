@@ -6,10 +6,17 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-15
+
+### 新增
+
+- 配置项 `BILI_SEND`：JSON 数组可选发送封面（`cover`：标题+封面图+链接）与视频（`video`）
+
 ### 文档
 
 - 强化接口可用性、安全提示与已知限制
 - 补充目录结构、完整配置示例与开发校验命令
+- 补充 `BILI_SEND` 配置说明与示例
 
 ### 构建 / CI
 
@@ -36,5 +43,6 @@
 - 首个面向独立开源分发的版本
 - 依赖 B 站公开 Web 接口与 WBI 签名，接口可能变更，不保证长期可用
 
-[Unreleased]: https://github.com/qianxuu/nonebot-plugin-bili/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/qianxuu/nonebot-plugin-bili/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/qianxuu/nonebot-plugin-bili/releases/tag/v0.2.0
 [0.1.0]: https://github.com/qianxuu/nonebot-plugin-bili/releases/tag/v0.1.0

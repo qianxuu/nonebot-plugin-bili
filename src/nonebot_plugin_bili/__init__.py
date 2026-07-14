@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
     usage=(
         '发送 B 站视频链接（BV / b23.tv / 分享卡片）自动解析并尝试下载发送；\n'
         '超级管理员私聊：订阅直播 / 取消订阅直播 / 直播订阅列表。\n'
-        '可选配置 BILI_NAPCAT_CACHE_DIR、BILI_GROUP_BLACKLIST 等。\n'
+        '可选配置 BILI_SEND、BILI_NAPCAT_CACHE_DIR、BILI_GROUP_BLACKLIST 等。\n'
         '请遵守 B 站服务条款与当地法律，勿未授权传播他人内容。'
     ),
     type='application',

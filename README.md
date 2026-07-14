@@ -14,7 +14,7 @@ NoneBot2 插件：自动识别 B 站视频链接并尝试下载发送，支持�
 ## 功能
 
 - 识别群聊 / 私聊中的 BV 号、`b23.tv` 短链与部分分享卡片
-- 发送标题、封面与视频链接；可下载后发送视频
+- 封面消息（标题 / 封面图 / 链接）与视频可通过 `BILI_SEND` 可选发送
 - 视频过大 / 充电专属 / 风控无流等场景给出提示并跳过下载
 - 群冷却、群黑名单、本地缓存与过期清理
 - 可选 NapCat 缓存目录映射，跳过 WS 流式上传
@@ -101,6 +101,7 @@ uv sync --group dev
 |---|---|---|---|
 | `BILI_NAPCAT_CACHE_DIR` | 否 | 空 | NapCat 容器内缓存目录 |
 | `BILI_GROUP_BLACKLIST` | 否 | `[]` | 群黑名单，JSON 数组 |
+| `BILI_SEND` | 否 | `["cover", "video"]` | 可选发送内容，JSON 数组：`cover`（标题+封面图+链接）、`video`（视频） |
 | `BILI_MAX_VIDEO_SIZE_MIB` | 否 | `50` | 跳过下载的视频大小上限（MiB） |
 | `BILI_GROUP_CD_SECONDS` | 否 | `60` | 同群同 BV 冷却秒数，`0` 表示不冷却 |
 | `BILI_CACHE_RETENTION_HOURS` | 否 | `24` | 本地缓存保留小时数 |
@@ -111,11 +112,19 @@ uv sync --group dev
 ```env
 BILI_NAPCAT_CACHE_DIR=/app/.config/QQ/NapCat/temp
 BILI_GROUP_BLACKLIST=["123456789", "987654321"]
+BILI_SEND=["cover", "video"]
 BILI_MAX_VIDEO_SIZE_MIB=50
 BILI_GROUP_CD_SECONDS=60
 BILI_CACHE_RETENTION_HOURS=24
 BILI_LIVE_POLL_INTERVAL=15
 ```
+
+`BILI_SEND` 示例：
+
+- `["cover", "video"]`：先发标题 / 封面图 / 链接，再下载发送视频（默认）
+- `["cover"]`：只发标题、封面图与链接，不下载视频
+- `["video"]`：跳过封面消息，直接下载发送视频
+- `[]`：不发送任何内容
 
 配置 `BILI_NAPCAT_CACHE_DIR` 时，请确保机器人进程的 `cache/bili` 与 NapCat 该目录为同一挂载或可互相访问。
 
