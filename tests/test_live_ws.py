@@ -40,7 +40,13 @@ def test_start_stop_ws_tasks():
     fake_task = mock.Mock()
     fake_task.done.return_value = False
 
-    with mock.patch.object(live_ws_mod.asyncio, 'create_task', return_value=fake_task) as create:
+    def fake_create_task(coro, *args, **kwargs):
+        # start_ws 会先构造 _ws_loop 协程；mock 掉调度后需 close，避免 never awaited
+        if hasattr(coro, 'close'):
+            coro.close()
+        return fake_task
+
+    with mock.patch.object(live_ws_mod.asyncio, 'create_task', side_effect=fake_create_task) as create:
         start_ws(1, 100)
         start_ws(1, 100)  # already running
         create.assert_called_once()
