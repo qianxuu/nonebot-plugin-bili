@@ -12,8 +12,9 @@ from nonebot_plugin_bili.api import (
 
 
 class IsPcdnTests(IsolatedAsyncioTestCase):
-    def test_detects_bcache_os(self):
+    def test_detects_bcache_and_mcdn_os(self):
         self.assertTrue(_is_pcdn('https://example.com/x?os=bcache&x=1'))
+        self.assertTrue(_is_pcdn('https://example.com/x?os=mcdn&x=1'))
         self.assertFalse(_is_pcdn('https://example.com/x?os=upos'))
         self.assertFalse(_is_pcdn('not a url'))
 
@@ -119,7 +120,10 @@ class VideoStreamInfoTests(IsolatedAsyncioTestCase):
                         {
                             'size': 1024,
                             'url': 'https://pcdn.example.com/a?os=bcache',
-                            'backup_url': ['https://upos.example.com/b?os=upos'],
+                            'backup_url': [
+                                'https://mcdn.example.com/c?os=mcdn',
+                                'https://upos.example.com/b?os=upos',
+                            ],
                         }
                     ]
                 },

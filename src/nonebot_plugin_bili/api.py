@@ -122,14 +122,14 @@ async def get_video_stream_info(bvid: str, cid: int) -> VideoStreamInfo:
 
 
 def _is_pcdn(url: str) -> bool:
-    """判断视频流地址是否为 PCDN"""
+    """判断视频流地址是否为 PCDN / MCDN。"""
 
     try:
         parsed = urlparse(url)
         qs = parse_qs(parsed.query)
         os_value = (qs.get('os', [''])[0] or '').lower()
 
-        return os_value == 'bcache'
+        return os_value in {'bcache', 'mcdn'}
     except Exception:
         return False
 
