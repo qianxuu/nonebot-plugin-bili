@@ -146,38 +146,6 @@ async def post(url: str, *, json: dict | None = None, timeout: int = 10) -> dict
         return await resp.json()
 
 
-async def get_content_length(url: str, timeout: int = 10) -> int | None:
-    """探测资源总大小"""
-
-    # 短视频短链常常会重定向到带 cdn 的真实地址,需要跟随重定向才能拿到真实资源
-    async with (
-        aiohttp.ClientSession() as session,
-        session.get(
-            url,
-            headers={**HEADERS, 'Range': 'bytes=0-0'},
-            timeout=aiohttp.ClientTimeout(total=timeout),
-            allow_redirects=True,
-        ) as resp,
-    ):
-        resp.raise_for_status()
-
-        if resp.status == 206:
-            content_range = resp.headers.get('Content-Range')
-            if content_range and '/' in content_range:
-                total = content_range.split('/')[-1]
-                if total.isdigit():
-                    return int(total)
-            return None
-
-        if resp.status == 200:
-            length = resp.headers.get('Content-Length')
-            if length is not None and length.isdigit():
-                return int(length)
-            return None
-
-    return None
-
-
 async def parse_short(short: str) -> str | None:
     """解析短链接"""
 

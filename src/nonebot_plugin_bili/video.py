@@ -115,7 +115,8 @@ async def send_video_info(bot: Bot, ev: MessageEvent, data: VideoInfo):
             file_path = cache_file_path
         elif not stream.skip_download:
             assert stream.url is not None
-            file_path = await download(data.bvid, stream.url)
+            assert stream.size is not None and stream.size > 0
+            file_path = await download(data.bvid, stream.url, stream.size)
 
         if file_path is None:
             return

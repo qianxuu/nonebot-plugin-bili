@@ -1,8 +1,8 @@
 from unittest import IsolatedAsyncioTestCase, mock
 
-from tests.fakes import FakeSession, FakeResponse, FakeClientSessionFactory
+from tests.fakes import FakeSession, FakeResponse
 from nonebot_plugin_bili import client as client_mod
-from nonebot_plugin_bili.client import WbiSession, parse_short, close_client, get_content_length
+from nonebot_plugin_bili.client import WbiSession, parse_short, close_client
 
 
 class WbiSessionTests(IsolatedAsyncioTestCase):
@@ -55,15 +55,6 @@ class ParseShortTests(IsolatedAsyncioTestCase):
         session = FakeSession(FakeResponse(200, payload={}))
         with mock.patch.object(client_mod, 'get_client', mock.AsyncMock(return_value=session)):
             self.assertIsNone(await parse_short('b23.tv/AbCdEfG'))
-
-
-class ContentLengthTests(IsolatedAsyncioTestCase):
-    async def test_content_range(self):
-        session = FakeSession(FakeResponse(206, headers={'Content-Range': 'bytes 0-0/12345'}, body=b'x'))
-        factory = FakeClientSessionFactory(session)
-        with mock.patch.object(client_mod.aiohttp, 'ClientSession', factory):
-            size = await get_content_length('https://example.com/a.mp4')
-        self.assertEqual(size, 12345)
 
 
 class CloseClientTests(IsolatedAsyncioTestCase):

@@ -47,13 +47,9 @@ class DownloadTests(IsolatedAsyncioTestCase):
         file_path = cache_dir / f'{bvid}.mp4'
         file_path.write_bytes(b'cached')
 
-        with (
-            mock.patch.object(download_mod, '_CACHE_DIR', cache_dir),
-            mock.patch.object(download_mod, 'get_content_length', mock.AsyncMock()) as cl,
-        ):
-            result = await download(bvid, 'https://example.com/v.mp4')
+        with mock.patch.object(download_mod, '_CACHE_DIR', cache_dir):
+            result = await download(bvid, 'https://example.com/v.mp4', 6)
         self.assertEqual(result, file_path)
-        cl.assert_not_called()
         file_path.unlink(missing_ok=True)
         cache_dir.rmdir()
 
@@ -71,15 +67,29 @@ class DownloadTests(IsolatedAsyncioTestCase):
 
         with (
             mock.patch.object(download_mod, '_CACHE_DIR', cache_dir),
-            mock.patch.object(download_mod, 'get_content_length', mock.AsyncMock(return_value=len(body))),
             mock.patch.object(download_mod.aiohttp, 'ClientSession', factory),
             mock.patch.object(download_mod, '_calculate_chunk_count', return_value=1),
         ):
-            result = await download(bvid, 'https://example.com/v.mp4')
+            result = await download(bvid, 'https://example.com/v.mp4', len(body))
 
         self.assertIsNotNone(result)
         assert result is not None
         self.assertEqual(result.read_bytes(), body)
         for p in cache_dir.iterdir():
             p.unlink()
+        cache_dir.rmdir()
+
+    async def test_download_skips_invalid_size(self):
+        cache_dir = Path('cache/bili-test-download-invalid')
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        for p in cache_dir.iterdir():
+            p.unlink()
+
+        with (
+            mock.patch.object(download_mod, '_CACHE_DIR', cache_dir),
+            mock.patch.object(download_mod, '_prune_cache'),
+        ):
+            result = await download('BV1INVALID01', 'https://example.com/v.mp4', 0)
+
+        self.assertIsNone(result)
         cache_dir.rmdir()

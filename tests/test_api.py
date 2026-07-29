@@ -129,6 +129,7 @@ class VideoStreamInfoTests(IsolatedAsyncioTestCase):
             stream = await get_video_stream_info('BV1', 1)
         self.assertFalse(stream.skip_download)
         self.assertEqual(stream.url, 'https://upos.example.com/b?os=upos')
+        self.assertEqual(stream.size, 1024)
 
 
 class GetVideoInfoTests(IsolatedAsyncioTestCase):

@@ -18,6 +18,7 @@ class VideoStreamInfo:
     skip_download: bool = True
     skip_download_msg: str | None = None
     url: str | None = None
+    size: int | None = None
 
 
 @dataclass
@@ -114,7 +115,7 @@ async def get_video_stream_info(bvid: str, cid: int) -> VideoStreamInfo:
             return VideoStreamInfo(skip_download_msg='请前往哔哩哔哩观看')
 
         logger.info(f'视频流信息获取成功: {bvid} - {bytes_to_mib(size):.2f} MiB')
-        return VideoStreamInfo(skip_download=False, url=valid_url)
+        return VideoStreamInfo(skip_download=False, url=valid_url, size=size)
     except Exception as e:
         logger.error(f'视频流信息获取失败: {bvid} - {e}')
         return VideoStreamInfo(skip_download_msg='请前往哔哩哔哩观看')

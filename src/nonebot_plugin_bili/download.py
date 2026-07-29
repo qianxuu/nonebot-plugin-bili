@@ -8,8 +8,8 @@ from pathlib import Path
 import aiohttp
 from nonebot import logger
 
+from .wbi import HEADERS
 from .utils import KeyedLock, bytes_to_mib, bytes_to_mibps
-from .client import HEADERS, get_content_length
 from .config import BILI_CACHE_RETENTION_SECONDS
 
 _TAG = '[哔哩下载]'
@@ -80,8 +80,8 @@ async def _download_chunk(session: aiohttp.ClientSession, url: str, start: int, 
     raise RuntimeError(f'分片下载失败: {start}-{end}')
 
 
-async def download(bvid: str, url: str) -> Path | None:
-    """下载视频"""
+async def download(bvid: str, url: str, size: int) -> Path | None:
+    """下载视频。size 来自 playurl API 的 durl.size，用于分片下载。"""
 
     async with _DOWNLOAD_LOCK(bvid):
         _CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -93,11 +93,11 @@ async def download(bvid: str, url: str) -> Path | None:
 
         _prune_cache(_CACHE_DIR)
 
-        content_length = await get_content_length(url)
-        if content_length is None:
-            logger.error(f'{_TAG} {bvid} 获取 Content-Length 失败，跳过下载')
+        if size <= 0:
+            logger.error(f'{_TAG} {bvid} 无效文件大小: {size}，跳过下载')
             return None
 
+        content_length = size
         num_chunks = _calculate_chunk_count(content_length)
         logger.info(f'{_TAG} {bvid} 开始: {bytes_to_mib(content_length):.2f} MiB, {num_chunks} 连接')
         t_start = time.monotonic()
