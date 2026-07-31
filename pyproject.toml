@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-bili"
-version = "0.2.0"
+version = "0.2.1"
 description = "NoneBot2 插件：B 站视频解析与直播开播提醒"
 readme = "README.md"
 authors = [

@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-31
+
+### 修复 / 改进
+
+- 过滤 MCDN 视频流地址 (`os=mcdn`)，避免不可用的 MCDN 链路
+- 分片下载改用 `playurl` 返回的 `durl.size`，移除 `Content-Length` HEAD/Range 探测
+- 修复测试中 mock `create_task` 未调度的 `_ws_loop` 协程导致的 `RuntimeWarning`
+
 ## [0.2.0] - 2026-07-15
 
 ### 新增
@@ -43,6 +51,7 @@
 - 首个面向独立开源分发的版本
 - 依赖 B 站公开 Web 接口与 WBI 签名，接口可能变更，不保证长期可用
 
-[Unreleased]: https://github.com/qianxuu/nonebot-plugin-bili/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/qianxuu/nonebot-plugin-bili/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/qianxuu/nonebot-plugin-bili/releases/tag/v0.2.1
 [0.2.0]: https://github.com/qianxuu/nonebot-plugin-bili/releases/tag/v0.2.0
 [0.1.0]: https://github.com/qianxuu/nonebot-plugin-bili/releases/tag/v0.1.0
